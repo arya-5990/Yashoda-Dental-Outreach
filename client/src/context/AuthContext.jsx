@@ -30,6 +30,7 @@ export const AuthProvider = ({ children }) => {
       setUser(res.data.user);
       return { success: true };
     } catch (error) {
+      console.error("Login Error details:", error.response?.data);
       const msg = error.response?.data?.error || 'Failed to map details.';
       return { success: false, error: msg };
     }
