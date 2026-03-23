@@ -6,6 +6,7 @@ const saleSchema = new mongoose.Schema({
   audioUrl: { type: String, required: true },
   screenshotUrl: { type: String, required: true },
   status: { type: String, enum: ['review', 'verified', 'issue'], default: 'review' },
+  reason: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now }
 });
 

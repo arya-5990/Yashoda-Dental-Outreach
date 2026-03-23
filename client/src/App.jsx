@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import WorkDesk from './pages/WorkDesk';
+import Submissions from './pages/Submissions';
 import ClinicBrandToggle from './components/ui/ClinicBrandToggle';
 import { useAuth } from './context/AuthContext';
 
@@ -58,6 +59,11 @@ function App() {
           <Route path="/log-success" element={
             <PrivateRoute>
               <WorkDesk />
+            </PrivateRoute>
+          } />
+          <Route path="/submissions" element={
+            <PrivateRoute>
+              <Submissions />
             </PrivateRoute>
           } />
         </Routes>

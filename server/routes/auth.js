@@ -8,7 +8,7 @@ const router = express.Router();
 // Register new intern
 router.post('/register', async (req, res) => {
   try {
-    const { method, contact, password, name } = req.body;
+    const { method, contact, password, name, email, phone, aadharId, dob, address, college, idCardUrl, profileUrl, termsAccepted } = req.body;
     
     if (!contact || !password || !name) {
       return res.status(400).json({ error: 'Please provide name, contact, and password.' });
@@ -23,7 +23,11 @@ router.post('/register', async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     
-    user = new User({ method, contact, password: hashedPassword, name });
+    user = new User({ 
+      method, contact, password: hashedPassword, name, 
+      email, phone, aadharId, dob, address, college, 
+      idCardUrl, profileUrl, termsAccepted 
+    });
     await user.save();
 
     // Create JWT

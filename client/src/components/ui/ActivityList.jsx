@@ -20,7 +20,7 @@ export default function ActivityList({ activities = [] }) {
   return (
     <div className="space-y-3">
       {activities.map((item, idx) => {
-        const statusConfig = statsMap[item.status];
+        const statusConfig = statsMap[item.status] || { icon: Clock, color: 'text-slate-500', bg: 'bg-slate-50 dark:bg-slate-800', label: 'Unknown' };
         const Icon = statusConfig.icon;
         
         return (
@@ -32,6 +32,11 @@ export default function ActivityList({ activities = [] }) {
             <div className="flex-1">
               <h4 className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{item.phone}</h4>
               <p className="text-xs text-slate-400 mt-0.5">{item.time}</p>
+              {item.status === 'issue' && item.reason && (
+                <div className="mt-2 text-xs text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 px-2 py-1.5 rounded-lg border border-rose-100 dark:border-rose-500/20 inline-block font-medium">
+                  <span className="font-bold">Reason:</span> {item.reason}
+                </div>
+              )}
             </div>
             
             <div className="flex items-center space-x-3">

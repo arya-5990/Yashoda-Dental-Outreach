@@ -35,9 +35,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (method, name, contact, password) => {
+  const register = async (userData) => {
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/register`, { method, name, contact, password });
+      const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/register`, userData);
       
       localStorage.setItem('ysp_token', res.data.token);
       localStorage.setItem('ysp_user', JSON.stringify(res.data.user));

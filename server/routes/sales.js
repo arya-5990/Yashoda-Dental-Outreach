@@ -16,6 +16,7 @@ router.get('/:internId', async (req, res) => {
       id: s._id,
       phone: s.customerPhone,
       status: s.status,
+      reason: s.reason,
       time: new Date(s.createdAt).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
     }));
 

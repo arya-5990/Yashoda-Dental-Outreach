@@ -72,14 +72,16 @@ export default function Dashboard() {
           <h3 className="text-sm font-semibold tracking-wide text-medical-800 dark:text-medical-TealLight uppercase">
             Recent Activity
           </h3>
-          <span className="text-xs text-slate-400 font-medium">All submissions ({salesData.totalSalesSubmitted})</span>
+          <button onClick={() => navigate('/submissions')} className="text-xs text-medical-Teal dark:text-medical-TealLight font-medium hover:underline transition-colors">
+            All submissions ({salesData.totalSalesSubmitted})
+          </button>
         </div>
         {loading ? (
             <div className="animate-pulse space-y-3">
               {[1, 2].map(i => <div key={i} className="h-16 bg-slate-100 dark:bg-medical-800 rounded-2xl"></div>)}
             </div>
         ) : (
-            <ActivityList activities={activities} />
+            <ActivityList activities={activities.slice(0, 5)} />
         )}
       </div>
 
