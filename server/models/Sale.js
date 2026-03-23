@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const saleSchema = new mongoose.Schema({
-  internPhone: { type: String, required: true },
+  internRef: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   customerPhone: { type: String, required: true },
   audioUrl: { type: String, required: true },
   screenshotUrl: { type: String, required: true },

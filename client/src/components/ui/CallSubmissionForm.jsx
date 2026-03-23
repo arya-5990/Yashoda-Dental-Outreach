@@ -1,30 +1,76 @@
 import React, { useState } from 'react';
-import { Camera, Mic, UploadCloud, CheckCircle2, ChevronLeft } from 'lucide-react';
+import { Camera, Mic, UploadCloud, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
 
 export default function CallSubmissionForm() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [phone, setPhone] = useState('');
   const [screenshot, setScreenshot] = useState(null);
   const [audio, setAudio] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
 
-  // Cloudinary Direct Upload Simulation
-  // Real implementation would use: fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, { method: 'POST', body: formData })
+  const uploadToCloudinary = async (file, resourceType = 'auto') => {
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+    
+    if (!cloudName || !uploadPreset) {
+      throw new Error("Missing Cloudinary configuration in .env");
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', uploadPreset);
+
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) {
+       const errBody = await response.json();
+       throw new Error(`Cloudinary Error: ${errBody.error?.message || 'Failed to upload'}`);
+    }
+
+    const data = await response.json();
+    return data.secure_url;
+  };
+
   const handleUpload = async (e) => {
     e.preventDefault();
     if (!phone || !screenshot || !audio) return;
     
     setIsSubmitting(true);
+    setError('');
     
-    // Simulate upload delay
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      // 1. Upload to Cloudinary Parallel
+      const [audioUrl, screenshotUrl] = await Promise.all([
+        uploadToCloudinary(audio, 'video'), // Cloudinary treats audio under video or auto
+        uploadToCloudinary(screenshot, 'image')
+      ]);
+
+      // 2. Submit to Backend
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/sales/log-sale`, {
+        internRef: user.id,
+        customerPhone: phone,
+        audioUrl,
+        screenshotUrl
+      });
+
       setSuccess(true);
-      
       setTimeout(() => navigate('/progress'), 2000);
-    }, 1500);
+      
+    } catch (err) {
+      setError(err.message || 'Error uploading files. Ensure Cloudinary is configured correctly.');
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (success) {
@@ -41,6 +87,12 @@ export default function CallSubmissionForm() {
 
   return (
     <div className="p-6">
+      {error && (
+        <div className="mb-4 bg-rose-50 text-rose-500 p-3 rounded-lg text-sm border border-rose-200 text-center font-medium">
+          {error}
+        </div>
+      )}
+
       <form onSubmit={handleUpload} className="space-y-6 max-w-sm mx-auto">
         <div className="space-y-4">
           <label className="block text-sm font-semibold tracking-wide text-medical-800 dark:text-medical-TealLight uppercase">
@@ -108,7 +160,7 @@ export default function CallSubmissionForm() {
           {isSubmitting ? (
              <span className="flex items-center space-x-2 animate-pulse">
                <UploadCloud className="w-5 h-5 animate-bounce" />
-               <span>Uploading...</span>
+               <span>Processing...</span>
              </span>
           ) : (
             <span>Submit Verification</span>

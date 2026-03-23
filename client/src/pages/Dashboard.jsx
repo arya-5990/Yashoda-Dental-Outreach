@@ -1,36 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Power, Clock } from 'lucide-react';
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import StipendProgress from '../components/ui/StipendProgress';
 import ActivityList from '../components/ui/ActivityList';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isClockedIn, setIsClockedIn] = useState(false);
+  const [activities, setActivities] = useState([]);
+  const [salesData, setSalesData] = useState({ currentSales: 0, totalSalesSubmitted: 0 });
+  const [loading, setLoading] = useState(true);
 
-  const mockActivities = [
-    { phone: '+91 98765 43210', status: 'verified', time: 'Today, 2:15 PM' },
-    { phone: '+91 87654 32109', status: 'review', time: 'Today, 11:30 AM' },
-    { phone: '+91 76543 21098', status: 'issue', time: 'Yesterday' }
-  ];
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      if (!user) return;
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/sales/${user.id}`);
+        setActivities(res.data.activities);
+        setSalesData({
+          currentSales: res.data.currentSales,
+          totalSalesSubmitted: res.data.totalSalesSubmitted
+        });
+      } catch (err) {
+        console.error("Failed to fetch dashboard data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboardData();
+  }, [user]);
 
   return (
     <div className="px-5 pb-32 animate-in fade-in slide-in-from-bottom-4 duration-500 relative min-h-screen">
       <div className="mb-6 mt-4 flex justify-between items-center">
         <div>
           <h2 className="font-serif text-2xl font-bold text-slate-900 dark:text-enamel-White">
-            Hello, Intern
+            Hello, {user?.name || 'Intern'}
           </h2>
           <p className="text-slate-500 font-light text-sm">Let's build more smiles today.</p>
         </div>
         
         {/* Profile Avatar placeholder */}
         <div className="w-10 h-10 rounded-full bg-medical-Teal/10 border-2 border-white dark:border-medical-800 shadow-sm flex items-center justify-center text-medical-Teal dark:text-medical-TealLight font-bold font-serif">
-          YSP
+          {user?.name ? user.name.charAt(0).toUpperCase() : 'Y'}
         </div>
       </div>
 
-      <StipendProgress currentSales={42} />
+      <StipendProgress currentSales={salesData.currentSales} />
 
       <div className="mb-8">
         <button 
@@ -53,9 +72,15 @@ export default function Dashboard() {
           <h3 className="text-sm font-semibold tracking-wide text-medical-800 dark:text-medical-TealLight uppercase">
             Recent Activity
           </h3>
-          <span className="text-xs text-slate-400 font-medium">Last 7 days</span>
+          <span className="text-xs text-slate-400 font-medium">All submissions ({salesData.totalSalesSubmitted})</span>
         </div>
-        <ActivityList activities={mockActivities} />
+        {loading ? (
+            <div className="animate-pulse space-y-3">
+              {[1, 2].map(i => <div key={i} className="h-16 bg-slate-100 dark:bg-medical-800 rounded-2xl"></div>)}
+            </div>
+        ) : (
+            <ActivityList activities={activities} />
+        )}
       </div>
 
       {/* Sticky Clock In/Out FAB */}
